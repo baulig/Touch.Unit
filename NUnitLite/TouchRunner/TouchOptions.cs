@@ -45,6 +45,9 @@ namespace MonoTouch.NUnit.UI {
 			HostName = defaults.StringForKey ("network.host.name");
 			HostPort = (int)defaults.IntForKey ("network.host.port");
 			SortNames = defaults.BoolForKey ("display.sort");
+			Repeat = defaults.BoolForKey ("repeat.enabled");
+			RepeatCount = defaults.IntForKey ("repeat.count");
+			AutoStart = defaults.BoolForKey ("misc.autostart");
 			
 			var os = new OptionSet () {
 				{ "autoexit", "If the app should exit once the test run has completed.", v => TerminateAfterExecution = true },
@@ -52,6 +55,7 @@ namespace MonoTouch.NUnit.UI {
 				{ "hostname=", "Comma-separated list of host names or IP address to (try to) connect to", v => HostName = v },
 				{ "hostport=", "TCP port to connect to.", v => HostPort = int.Parse (v) },
 				{ "enablenetwork", "Enable the network reporter.", v => EnableNetwork = true },
+				{ "repeat=", "Repeat count", v => RepeatCount = int.Parse (v) }
 			};
 			
 			try {
@@ -70,6 +74,10 @@ namespace MonoTouch.NUnit.UI {
 		public bool AutoStart { get; set; }
 		
 		public bool TerminateAfterExecution { get; set; }
+
+		public bool Repeat { get; set; }
+
+		public int RepeatCount { get; set; }
 		
 		public bool ShowUseNetworkLogger {
 			get { return (EnableNetwork && !String.IsNullOrWhiteSpace (HostName) && (HostPort > 0)); }
@@ -90,9 +98,16 @@ namespace MonoTouch.NUnit.UI {
 			
 			var sort = new BooleanElement ("Sort Names", SortNames);
 
+			var repeat = new BooleanElement ("Repeat", Repeat);
+			var repeatCount = new EntryElement ("Repeat Count", "repeat", RepeatCount.ToString ());
+
+			var autoStart = new BooleanElement ("Auto Start", AutoStart);
+
 			var root = new RootElement ("Options") {
 				new Section ("Remote Server") { network, host, port },
-				new Section ("Display") { sort }
+				new Section ("Display") { sort },
+				new Section ("Repeat") { repeat, repeatCount },
+				new Section ("Misc") { autoStart }
 			};
 				
 			var dv = new DialogViewController (root, true) { Autorotate = true };
@@ -105,12 +120,24 @@ namespace MonoTouch.NUnit.UI {
 				else
 					HostPort = -1;
 				SortNames = sort.Value;
+
+				int r;
+				if (Int32.TryParse (repeatCount.Value, out r))
+					RepeatCount = r;
+				else
+					RepeatCount = 0;
+				Repeat = repeat.Value;
+
+				AutoStart = autoStart.Value;
 				
 				var defaults = NSUserDefaults.StandardUserDefaults;
 				defaults.SetBool (EnableNetwork, "network.enabled");
 				defaults.SetString (HostName ?? String.Empty, "network.host.name");
 				defaults.SetInt (HostPort, "network.host.port");
 				defaults.SetBool (SortNames, "display.sort");
+				defaults.SetBool (Repeat, "repeat.enabled");
+				defaults.SetInt (RepeatCount, "repeat.count");
+				defaults.SetBool (AutoStart, "misc.autostart");
 			};
 			
 			return dv;

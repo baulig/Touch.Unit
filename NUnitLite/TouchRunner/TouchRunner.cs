@@ -156,19 +156,42 @@ namespace MonoTouch.NUnit.UI {
 			}
 			return dv;
 		}
-		
+
 		void Run ()
 		{
-			if (!OpenWriter ("Run Everything"))
-				return;
+			var options = TouchOptions.Current;
+			var count = options.Repeat ? options.RepeatCount : 0;
+
+			string message;
+			if (count == 0)
+				message = "Running single iteration";
+			else if (count > 0)
+				message = string.Format ("Running {0} iterations.", count);
+			else
+				message = "Running forever.";
+
+			if (!OpenWriter (message))
+				throw new InvalidOperationException ();
+
 			try {
-				Run (suite);
-			}
-			finally {
+				if (count == 0) {
+					Run (suite);
+					return;
+				}
+
+				var iteration = 0;
+				while (true) {
+					if (count > 0 && iteration++ > count)
+						break;
+
+					Console.WriteLine ("Starting iteration {0}.", iteration);
+					Run (suite);
+				}
+			} finally {
 				CloseWriter ();
 			}
 		}
-				
+
 		void Options ()
 		{
 			NavigationController.PushViewController (TouchOptions.Current.GetViewController (), true);				
