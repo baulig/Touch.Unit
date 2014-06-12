@@ -48,6 +48,7 @@ namespace MonoTouch.NUnit.UI {
 			Repeat = defaults.BoolForKey ("repeat.enabled");
 			RepeatCount = defaults.IntForKey ("repeat.count");
 			AutoStart = defaults.BoolForKey ("misc.autostart");
+			TerminateAfterExecution = defaults.BoolForKey ("misc.autoexit");
 			
 			var os = new OptionSet () {
 				{ "autoexit", "If the app should exit once the test run has completed.", v => TerminateAfterExecution = true },
@@ -102,12 +103,13 @@ namespace MonoTouch.NUnit.UI {
 			var repeatCount = new EntryElement ("Repeat Count", "repeat", RepeatCount.ToString ());
 
 			var autoStart = new BooleanElement ("Auto Start", AutoStart);
+			var autoExit = new BooleanElement ("Auto Exit", TerminateAfterExecution);
 
 			var root = new RootElement ("Options") {
 				new Section ("Remote Server") { network, host, port },
 				new Section ("Display") { sort },
 				new Section ("Repeat") { repeat, repeatCount },
-				new Section ("Misc") { autoStart }
+				new Section ("Misc") { autoStart, autoExit }
 			};
 				
 			var dv = new DialogViewController (root, true) { Autorotate = true };
@@ -129,6 +131,7 @@ namespace MonoTouch.NUnit.UI {
 				Repeat = repeat.Value;
 
 				AutoStart = autoStart.Value;
+				TerminateAfterExecution = autoExit.Value;
 				
 				var defaults = NSUserDefaults.StandardUserDefaults;
 				defaults.SetBool (EnableNetwork, "network.enabled");
@@ -138,6 +141,7 @@ namespace MonoTouch.NUnit.UI {
 				defaults.SetBool (Repeat, "repeat.enabled");
 				defaults.SetInt (RepeatCount, "repeat.count");
 				defaults.SetBool (AutoStart, "misc.autostart");
+				defaults.SetBool (TerminateAfterExecution, "misc.autoexit");
 			};
 			
 			return dv;
